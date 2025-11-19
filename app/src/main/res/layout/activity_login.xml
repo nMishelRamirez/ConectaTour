@@ -16,9 +16,9 @@
         <!-- Logo -->
         <ImageView
             android:id="@+id/logoImageView"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_marginTop="32dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="52dp"
             android:src="@mipmap/ic_launcher_round"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -146,16 +146,17 @@
             android:id="@+id/forgotPasswordTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="32dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="192dp"
             android:text="¿Has olvidado tu contraseña?"
             android:textColor="@android:color/darker_gray"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/registerTextView"
             app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/googleLoginButton"
-            app:layout_constraintVertical_bias="1.0" />
+            />
 
         <TextView
             android:id="@+id/registerTextView"
@@ -164,7 +165,7 @@
             android:layout_marginStart="8dp"
             android:text="Regístrate"
             android:textStyle="bold"
-            android:textColor="#6FAF6B"
+            android:textColor="#36C285"
             app:layout_constraintBaseline_toBaselineOf="@+id/forgotPasswordTextView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/forgotPasswordTextView" />

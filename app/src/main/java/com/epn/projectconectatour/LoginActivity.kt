@@ -38,18 +38,13 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        // Configurar el botón de recuperar contraseña
+        // CONEXIÓN A OLVIDÉ CONTRASEÑA - Navegar a la pantalla de Olvido contraseña
         forgotPasswordTextView.setOnClickListener {
-            // Lógica para recuperar la contraseña
-            val email = emailEditText.text.toString()
-            if (email.isNotEmpty()) {
-                resetPassword(email)
-            } else {
-                Toast.makeText(this, "Por favor, ingresa tu email", Toast.LENGTH_SHORT).show()
-            }
+            val intent = Intent(this, ForgotPassword::class.java)
+            startActivity(intent)
         }
 
-        // Navegar a la pantalla de registro
+        // CONEXIÓN A REGISTRO - Navegar a la pantalla de registro
         registerTextView.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
@@ -63,22 +58,10 @@ class LoginActivity : AppCompatActivity() {
                     // Si el login es exitoso, ir a la pantalla principal
                     Toast.makeText(this, "Login exitoso", Toast.LENGTH_SHORT).show()
                     // Redirigir a la pagina inicial
-                    startActivity(Intent(this, RegisterActivity::class.java))
+                    startActivity(Intent(this, Home::class.java))
                     finish()
                 } else {
                     Toast.makeText(this, "Login fallido: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
-    }
-
-    // Función para recuperar la contraseña
-    private fun resetPassword(email: String) {
-        auth.sendPasswordResetEmail(email)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Toast.makeText(this, "Correo de recuperación enviado", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Error al enviar correo: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
     }

@@ -24,7 +24,7 @@ class Home : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_near_me -> {
-                    // loadFragment(NearMeFragment()) // Fragmento de Cerca de mi
+                    loadFragment(NearMeFragment())
                     true
                 }
                 R.id.navigation_guides -> {

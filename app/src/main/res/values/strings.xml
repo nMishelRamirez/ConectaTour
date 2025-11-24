@@ -142,4 +142,12 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
+    <string name="Fragment_near_me_Go_back">Volver</string>
+    <string name="Fragment_near_me_Near_destinies">Destinos cercanos</string>
+    <string name="Fragment_near_me_Map">Mapa</string>
+    <string name="Fragment_near_me_Destinies">Destinos</string>
+    <string name="Fragment_near_me_Map_view">Vista del mapa</string>
+    <string name="Fragment_near_me_Item_destination_Destiny_image">Imagen del destino</string>
+    <string name="Fragment_near_me_Item_destination_Destiny_name">Nombre del destino</string>
+    <string name="Fragment_near_me_Item_destination_Show_details">Ver detalles</string>
 </resources>

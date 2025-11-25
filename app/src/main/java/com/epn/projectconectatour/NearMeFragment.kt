@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.tabs.TabLayout
 
 class NearMeFragment : Fragment() {
 
@@ -25,37 +24,6 @@ class NearMeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Referencias a los contenedores
-        val tabLayout = view.findViewById<TabLayout>(R.id.tabLayout)
-        val mapContainer = view.findViewById<View>(R.id.mapContainer)
-        val destinationsContainer = view.findViewById<View>(R.id.destinationsContainer)
-
-        // Por defecto mostrar la vista de destinos (tab 1)
-        mapContainer.visibility = View.GONE
-        destinationsContainer.visibility = View.VISIBLE
-        tabLayout.selectTab(tabLayout.getTabAt(1)) // Seleccionar "Destinos" por defecto
-
-        // Listener para cambiar entre tabs
-        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                when (tab?.position) {
-                    0 -> {
-                        // Tab "Mapa" - Mostrar solo el mapa grande
-                        mapContainer.visibility = View.VISIBLE
-                        destinationsContainer.visibility = View.GONE
-                    }
-                    1 -> {
-                        // Tab "Destinos" - Mostrar mapa pequeño + lista
-                        mapContainer.visibility = View.GONE
-                        destinationsContainer.visibility = View.VISIBLE
-                    }
-                }
-            }
-
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
-
         // Configurar RecyclerView de destinos
         val recyclerView = view.findViewById<RecyclerView>(R.id.destinationsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context)
@@ -68,11 +36,11 @@ class NearMeFragment : Fragment() {
             ),
             Destination(
                 "Centro Histórico de Quito",
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Plaza_de_la_Independencia_de_Quito.jpg/280px-Plaza_de_la_Independencia_de_Quito.jpg"
+                "https://imgs.search.brave.com/a1sVxbMeP9CU8Fc1Q_75PhKNwwXUdpAuqZkmebUYMMA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly92aXN0/YWhlcm1vc2EuZWMv/d3AtY29udGVudC91/cGxvYWRzLzIwMTkv/MDMvY2VudHJvLWhp/c3Rvcmljby1xdWl0/by12aXN0YS1oZXJt/b3NhLmpwZw"
             ),
             Destination(
-                "Iglesia y Convento de San Francisco",
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Iglesia_de_San_Francisco%2C_Quito%2C_Ecuador%2C_2015-07-22%2C_DD_142.JPG/280px-Iglesia_de_San_Francisco%2C_Quito%2C_Ecuador%2C_2015-07-22%2C_DD_142.JPG"
+                "Mitad del Mundo",
+                "https://imgs.search.brave.com/-Jz5QNxickBGTlglCVpNAMH3x9sZ9tHURbaqqk-FNUw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzAyLzY5LzUxLzEw/LzM2MF9GXzI2OTUx/MTA2OF9tVlhDTGJI/dTJtTDFyZGNUMWFZ/dlR2QU1TOENYZ2JC/Si5qcGc"
             )
         )
 

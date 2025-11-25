@@ -33,33 +33,6 @@ class NearMeFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        // Referencias a los contenedores
-        val tabLayout = view.findViewById<TabLayout>(R.id.tabLayout)
-        val mapContainer = view.findViewById<View>(R.id.mapContainer)
-        val destinationsContainer = view.findViewById<View>(R.id.destinationsContainer)
-
-        // Configuración inicial de Tabs
-        mapContainer.visibility = View.GONE
-        destinationsContainer.visibility = View.VISIBLE
-        tabLayout.selectTab(tabLayout.getTabAt(1))
-
-        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                when (tab?.position) {
-                    0 -> { // Tab Mapa
-                        mapContainer.visibility = View.VISIBLE
-                        destinationsContainer.visibility = View.GONE
-                    }
-                    1 -> { // Tab Destinos
-                        mapContainer.visibility = View.GONE
-                        destinationsContainer.visibility = View.VISIBLE
-                    }
-                }
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
-
         // Configurar RecyclerView
         val recyclerView = view.findViewById<RecyclerView>(R.id.destinationsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context)
@@ -75,13 +48,13 @@ class NearMeFragment : Fragment() {
             Site(
                 title = "Centro Histórico de Quito",
                 description = "El centro histórico de Quito es el mejor conservado y uno de los más importantes de América Latina.",
-                imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Plaza_de_la_Independencia_de_Quito.jpg/280px-Plaza_de_la_Independencia_de_Quito.jpg",
+                imageUrl = "https://imgs.search.brave.com/a1sVxbMeP9CU8Fc1Q_75PhKNwwXUdpAuqZkmebUYMMA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly92aXN0/YWhlcm1vc2EuZWMv/d3AtY29udGVudC91/cGxvYWRzLzIwMTkv/MDMvY2VudHJvLWhp/c3Rvcmljby1xdWl0/by12aXN0YS1oZXJt/b3NhLmpwZw",
                 category = "Histórico"
             ),
             Site(
                 title = "Iglesia de San Francisco",
                 description = "La Iglesia de San Francisco es una basílica católica que se levanta en medio del centro histórico de Quito.",
-                imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Iglesia_de_San_Francisco%2C_Quito%2C_Ecuador%2C_2015-07-22%2C_DD_142.JPG/280px-Iglesia_de_San_Francisco%2C_Quito%2C_Ecuador%2C_2015-07-22%2C_DD_142.JPG",
+                imageUrl = "https://imgs.search.brave.com/YMr62PzvbNNTxJ4emiiTQWmt4CfF875HIBYA9eIEuC8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly91cGxv/YWQud2lraW1lZGlh/Lm9yZy93aWtpcGVk/aWEvY29tbW9ucy83/Lzc3L0lnbGVzaWFf/ZGVfU2FuX0ZyYW5j/aXNjbyxfUXVpdG8s/X0VjdWFkb3IsXzIw/MTUtMDctMjIsX0RE/XzE1Mi5KUEc",
                 category = "Religioso"
             )
         )

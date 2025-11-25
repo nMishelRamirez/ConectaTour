@@ -27,13 +27,11 @@ class NearMeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. NAVEGABILIDAD (Botón Atrás del Fragmento)
+        // NAVEGABILIDAD
         val backButton = view.findViewById<ImageButton>(R.id.backButton)
         backButton.setOnClickListener {
-            // Regresar a la pantalla anterior (generalmente Home)
+            // Regresar a la pantalla anterior
             parentFragmentManager.popBackStack()
-            // O si estás en el HomeActivity y quieres ir al tab de inicio:
-            // (activity as? HomeActivity)?.navigateToHome()
         }
 
         // Referencias a los contenedores
@@ -67,7 +65,7 @@ class NearMeFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.destinationsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // 2. DATOS (Usando la nueva clase Site)
+        // DATOS (Usando la nueva clase Site)
         val destinations = listOf(
             Site(
                 title = "Basílica del Voto Nacional",
@@ -117,7 +115,7 @@ class NearMeFragment : Fragment() {
                 .circleCrop()
                 .into(holder.imageView)
 
-            // 3. NAVEGACIÓN A DETALLES
+            // NAVEGACIÓN A DETALLES
             holder.detailsButton.setOnClickListener {
                 // Creamos el Intent hacia la Activity de detalles
                 val intent = Intent(holder.itemView.context, SiteDetailActivity::class.java)

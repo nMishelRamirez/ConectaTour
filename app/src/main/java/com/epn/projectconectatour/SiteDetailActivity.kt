@@ -20,8 +20,7 @@ class SiteDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_site_detail)
 
-        // 1. RECUPERAR DATOS
-        // Usamos la nueva clase 'Site' que creamos
+        // RECUPERAR DATOS
         val site = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("SITE_DATA", Site::class.java)
         } else {
@@ -43,7 +42,7 @@ class SiteDetailActivity : AppCompatActivity() {
         val tabAboutIndicator = findViewById<View>(R.id.tabAboutIndicator)
         val tabInfoIndicator = findViewById<View>(R.id.tabInfoIndicator)
 
-        // 2. MOSTRAR DATOS
+        // MOSTRAR DATOS
         if (site != null) {
             titleTextView.text = site.title
             fullDescription = site.description
@@ -53,12 +52,12 @@ class SiteDetailActivity : AppCompatActivity() {
             Glide.with(this).load(site.imageUrl).into(imageView)
         }
 
-        // 3. NAVEGABILIDAD (Botón Atrás)
+        // NAVEGABILIDAD
         backButton.setOnClickListener {
-            finish() // Cierra esta actividad y regresa a la anterior (NearMe o Home)
+            finish()
         }
 
-        // --- Lógica de las Pestañas (Igual que antes) ---
+        // Lógica de las Pestañas
         tabAboutContainer.setOnClickListener {
             tabAboutText.setTextColor(Color.parseColor("#1A2E35"))
             tabAboutText.typeface = android.graphics.Typeface.DEFAULT_BOLD

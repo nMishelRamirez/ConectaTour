@@ -1,9 +1,11 @@
 package com.epn.projectconectatour
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -25,65 +27,73 @@ class NearMeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 1. NAVEGABILIDAD (Botón Atrás del Fragmento)
+        val backButton = view.findViewById<ImageButton>(R.id.backButton)
+        backButton.setOnClickListener {
+            // Regresar a la pantalla anterior (generalmente Home)
+            parentFragmentManager.popBackStack()
+            // O si estás en el HomeActivity y quieres ir al tab de inicio:
+            // (activity as? HomeActivity)?.navigateToHome()
+        }
+
         // Referencias a los contenedores
         val tabLayout = view.findViewById<TabLayout>(R.id.tabLayout)
         val mapContainer = view.findViewById<View>(R.id.mapContainer)
         val destinationsContainer = view.findViewById<View>(R.id.destinationsContainer)
 
-        // Por defecto mostrar la vista de destinos (tab 1)
+        // Configuración inicial de Tabs
         mapContainer.visibility = View.GONE
         destinationsContainer.visibility = View.VISIBLE
-        tabLayout.selectTab(tabLayout.getTabAt(1)) // Seleccionar "Destinos" por defecto
+        tabLayout.selectTab(tabLayout.getTabAt(1))
 
-        // Listener para cambiar entre tabs
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 when (tab?.position) {
-                    0 -> {
-                        // Tab "Mapa" - Mostrar solo el mapa grande
+                    0 -> { // Tab Mapa
                         mapContainer.visibility = View.VISIBLE
                         destinationsContainer.visibility = View.GONE
                     }
-                    1 -> {
-                        // Tab "Destinos" - Mostrar mapa pequeño + lista
+                    1 -> { // Tab Destinos
                         mapContainer.visibility = View.GONE
                         destinationsContainer.visibility = View.VISIBLE
                     }
                 }
             }
-
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
 
-        // Configurar RecyclerView de destinos
+        // Configurar RecyclerView
         val recyclerView = view.findViewById<RecyclerView>(R.id.destinationsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // Datos quemados de destinos cercanos
+        // 2. DATOS (Usando la nueva clase Site)
         val destinations = listOf(
-            Destination(
-                "Basílica Católica Nuestra Señora de La Merced | Quito",
-                "https://imgs.search.brave.com/rmjs5veGgi4uWeBIs5whKmu4GJWG9tBys75yg10zkZ0/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9sb3N0/cmF2ZWxlcm9zLmNv/bS93cC1jb250ZW50/L3VwbG9hZHMvMjAy/My8wMi9Db25kb3It/VmlzdGEtODAweDUz/Mi5qcGc"
+            Site(
+                title = "Basílica del Voto Nacional",
+                description = "La Basílica del Voto Nacional es la obra más importante de la arquitectura neogótica ecuatoriana y una de las más representativas del continente americano.",
+                imageUrl = "https://imgs.search.brave.com/rmjs5veGgi4uWeBIs5whKmu4GJWG9tBys75yg10zkZ0/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9sb3N0/cmF2ZWxlcm9zLmNv/bS93cC1jb250ZW50/L3VwbG9hZHMvMjAy/My8wMi9Db25kb3It/VmlzdGEtODAweDUz/Mi5qcGc",
+                category = "Iglesia"
             ),
-            Destination(
-                "Centro Histórico de Quito",
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Plaza_de_la_Independencia_de_Quito.jpg/280px-Plaza_de_la_Independencia_de_Quito.jpg"
+            Site(
+                title = "Centro Histórico de Quito",
+                description = "El centro histórico de Quito es el mejor conservado y uno de los más importantes de América Latina.",
+                imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Plaza_de_la_Independencia_de_Quito.jpg/280px-Plaza_de_la_Independencia_de_Quito.jpg",
+                category = "Histórico"
             ),
-            Destination(
-                "Iglesia y Convento de San Francisco",
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Iglesia_de_San_Francisco%2C_Quito%2C_Ecuador%2C_2015-07-22%2C_DD_142.JPG/280px-Iglesia_de_San_Francisco%2C_Quito%2C_Ecuador%2C_2015-07-22%2C_DD_142.JPG"
+            Site(
+                title = "Iglesia de San Francisco",
+                description = "La Iglesia de San Francisco es una basílica católica que se levanta en medio del centro histórico de Quito.",
+                imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Iglesia_de_San_Francisco%2C_Quito%2C_Ecuador%2C_2015-07-22%2C_DD_142.JPG/280px-Iglesia_de_San_Francisco%2C_Quito%2C_Ecuador%2C_2015-07-22%2C_DD_142.JPG",
+                category = "Religioso"
             )
         )
 
         recyclerView.adapter = DestinationsAdapter(destinations)
     }
 
-    // Modelo de datos
-    data class Destination(val name: String, val imageUrl: String)
-
-    // Adaptador
-    inner class DestinationsAdapter(private val destinations: List<Destination>) :
+    // Adaptador actualizado para usar 'Site'
+    inner class DestinationsAdapter(private val sites: List<Site>) :
         RecyclerView.Adapter<DestinationsAdapter.DestinationViewHolder>() {
 
         inner class DestinationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -99,22 +109,27 @@ class NearMeFragment : Fragment() {
         }
 
         override fun onBindViewHolder(holder: DestinationViewHolder, position: Int) {
-            val destination = destinations[position]
-            holder.nameTextView.text = destination.name
+            val site = sites[position]
+            holder.nameTextView.text = site.title
+
             Glide.with(holder.itemView.context)
-                .load(destination.imageUrl)
+                .load(site.imageUrl)
                 .circleCrop()
                 .into(holder.imageView)
 
+            // 3. NAVEGACIÓN A DETALLES
             holder.detailsButton.setOnClickListener {
-                android.widget.Toast.makeText(
-                    context,
-                    "Ver detalles de: ${destination.name}",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
+                // Creamos el Intent hacia la Activity de detalles
+                val intent = Intent(holder.itemView.context, SiteDetailActivity::class.java)
+
+                // Pasamos el objeto 'site' completo
+                intent.putExtra("SITE_DATA", site)
+
+                // Iniciamos la actividad
+                holder.itemView.context.startActivity(intent)
             }
         }
 
-        override fun getItemCount() = destinations.size
+        override fun getItemCount() = sites.size
     }
 }

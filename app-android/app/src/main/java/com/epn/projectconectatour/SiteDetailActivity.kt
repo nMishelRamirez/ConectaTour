@@ -53,9 +53,9 @@ class SiteDetailActivity : AppCompatActivity() {
         }
 
         // NAVEGABILIDAD
-        backButton.setOnClickListener {
-            finish()
-        }
+        //backButton.setOnClickListener {
+            //finish()
+        //}
 
         // Lógica de las Pestañas
         tabAboutContainer.setOnClickListener {

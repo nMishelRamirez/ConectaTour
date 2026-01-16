@@ -4,20 +4,19 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.lifecycle.lifecycleScope
+import com.epn.projectconectatour.network.RetrofitClient
+import com.epn.projectconectatour.network.models.LoginRequest
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
-
-    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-        // Inicializamos Firebase Auth
-        auth = FirebaseAuth.getInstance()
 
         // variables
         val loginButton = findViewById<Button>(R.id.loginButton)
@@ -28,8 +27,8 @@ class LoginActivity : AppCompatActivity() {
 
         // Configurar el botón de login
         loginButton.setOnClickListener {
-            val email = emailEditText.text.toString()
-            val password = passwordEditText.text.toString()
+            val email = emailEditText.text.toString().trim()
+            val password = passwordEditText.text.toString().trim()
 
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 loginUser(email, password)
@@ -38,31 +37,53 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        // CONEXIÓN A OLVIDÉ CONTRASEÑA - Navegar a la pantalla de Olvido contraseña
+        // CONEXIÓN A OLVIDÉ CONTRASEÑA
         forgotPasswordTextView.setOnClickListener {
             val intent = Intent(this, ForgotPassword::class.java)
             startActivity(intent)
         }
 
-        // CONEXIÓN A REGISTRO - Navegar a la pantalla de registro
+        // CONEXIÓN A REGISTRO
         registerTextView.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
         }
     }
+
     // Función para iniciar sesión
     private fun loginUser(email: String, password: String) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    // Si el login es exitoso, ir a la pantalla principal
-                    Toast.makeText(this, "Login exitoso", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            try {
+                val request = LoginRequest(
+                    correo = email,
+                    contraseña = password
+                )
+
+                val response = RetrofitClient.apiService.login(request)
+
+                if (response.isSuccessful && response.body()?.estado == "Ok") {
+                    val turista = response.body()?.datos
+                    Toast.makeText(this@LoginActivity, "Login exitoso", Toast.LENGTH_SHORT).show()
+
+                    // Guardar datos del usuario en SharedPreferences
+                    val sharedPref = getSharedPreferences("ConectaTourPrefs", MODE_PRIVATE)
+                    with(sharedPref.edit()) {
+                        putInt("userId", turista?.id ?: 0)
+                        putString("userName", turista?.nombre)
+                        putString("userEmail", turista?.correo)
+                        apply()
+                    }
+
                     // Redirigir a la pagina inicial
-                    startActivity(Intent(this, Home::class.java))
+                    startActivity(Intent(this@LoginActivity, Home::class.java))
                     finish()
                 } else {
-                    Toast.makeText(this, "Login fallido: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                    val errorMsg = response.body()?.mensaje ?: "Credenciales incorrectas"
+                    Toast.makeText(this@LoginActivity, errorMsg, Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: Exception) {
+                Toast.makeText(this@LoginActivity, "Error de conexión: ${e.message}", Toast.LENGTH_LONG).show()
             }
+        }
     }
 }

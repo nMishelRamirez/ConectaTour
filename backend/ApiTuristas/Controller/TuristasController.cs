@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using ApiTuristas.Models;
 using ApiTuristas.Response;
 using ApiTuristas.Data;
-using System.Collections.Generic;
-using System.Linq;
+using ApiTuristas.DTOs;
+using System.Threading.Tasks;
 
 namespace ApiTuristas.Controllers
 {
@@ -18,15 +18,16 @@ namespace ApiTuristas.Controllers
         {
             _context = context;
         }
+
         // ================= REGISTER =================
         [HttpPost("register")]
-        public async Task<ActionResult> Register([FromBody] Turista turista)
+        public async Task<ActionResult> Register([FromBody] RegisterDto dto)
         {
             // Validación de campos obligatorios
-            if (string.IsNullOrEmpty(turista.Nombre) ||
-                string.IsNullOrEmpty(turista.Correo) ||
-                string.IsNullOrEmpty(turista.Celular) ||
-                string.IsNullOrEmpty(turista.Contraseña))
+            if (string.IsNullOrEmpty(dto.Nombre) ||
+                string.IsNullOrEmpty(dto.Correo) ||
+                string.IsNullOrEmpty(dto.Celular) ||
+                string.IsNullOrEmpty(dto.Contraseña))
             {
                 return BadRequest(new ApiResponse<string>
                 {
@@ -39,7 +40,7 @@ namespace ApiTuristas.Controllers
 
             // Verificar si el correo ya existe en la BD
             var correoExiste = await _context.turistas
-                .AnyAsync(x => x.Correo == turista.Correo);
+                .AnyAsync(x => x.Correo == dto.Correo);
 
             if (correoExiste)
             {
@@ -52,9 +53,18 @@ namespace ApiTuristas.Controllers
                 });
             }
 
+            // Crear el turista desde el DTO
+            var turista = new Turista
+            {
+                Nombre = dto.Nombre,
+                Celular = dto.Celular,
+                Correo = dto.Correo,
+                Contraseña = dto.Contraseña
+            };
+
             // Agregar el turista a la BD
             _context.turistas.Add(turista);
-            await _context.SaveChangesAsync(); // El Id se genera automáticamente
+            await _context.SaveChangesAsync();
 
             return Ok(new ApiResponse<Turista>
             {
@@ -67,13 +77,13 @@ namespace ApiTuristas.Controllers
 
         // ================= LOGIN =================
         [HttpPost("login")]
-        public async Task<ActionResult> Login([FromBody] Turista login)
+        public async Task<ActionResult> Login([FromBody] LoginDto dto)
         {
             // Buscar en la BD por correo y contraseña
             var turista = await _context.turistas
                 .FirstOrDefaultAsync(x =>
-                    x.Correo == login.Correo &&
-                    x.Contraseña == login.Contraseña);
+                    x.Correo == dto.Correo &&
+                    x.Contraseña == dto.Contraseña);
 
             if (turista == null)
             {
@@ -99,9 +109,7 @@ namespace ApiTuristas.Controllers
         [HttpGet("perfil/{id}")]
         public async Task<ActionResult> GetPerfil(int id)
         {
-            // Buscar turista por ID en la BD
-            var turista = await _context.turistas
-                .FindAsync(id);
+            var turista = await _context.turistas.FindAsync(id);
 
             if (turista == null)
             {
@@ -125,11 +133,9 @@ namespace ApiTuristas.Controllers
 
         // ================= EDITAR PERFIL =================
         [HttpPut("perfil/{id}")]
-        public async Task<ActionResult> UpdatePerfil(int id, [FromBody] Turista datos)
+        public async Task<ActionResult> UpdatePerfil(int id, [FromBody] UpdatePerfilDto dto)
         {
-            // Buscar turista en la BD
-            var turista = await _context.turistas
-                .FindAsync(id);
+            var turista = await _context.turistas.FindAsync(id);
 
             if (turista == null)
             {
@@ -143,11 +149,10 @@ namespace ApiTuristas.Controllers
             }
 
             // Actualizar campos
-            turista.Nombre = datos.Nombre;
-            turista.Correo = datos.Correo;
-            turista.Celular = datos.Celular;
+            turista.Nombre = dto.Nombre;
+            turista.Correo = dto.Correo;
+            turista.Celular = dto.Celular;
 
-            // Guardar cambios en la BD
             await _context.SaveChangesAsync();
 
             return Ok(new ApiResponse<Turista>

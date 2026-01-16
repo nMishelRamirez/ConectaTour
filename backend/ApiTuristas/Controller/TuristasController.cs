@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ApiTuristas.Models;
 using ApiTuristas.Response;
+using ApiTuristas.Data;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,12 +12,17 @@ namespace ApiTuristas.Controllers
     [Route("api/turistas")]
     public class TuristasController : ControllerBase
     {
-        private static List<Turista> turistas = new List<Turista>();
+        private readonly AppDbContext _context;
 
+        public TuristasController(AppDbContext context)
+        {
+            _context = context;
+        }
         // ================= REGISTER =================
         [HttpPost("register")]
-        public ActionResult Register([FromBody] Turista turista)
+        public async Task<ActionResult> Register([FromBody] Turista turista)
         {
+            // Validación de campos obligatorios
             if (string.IsNullOrEmpty(turista.Nombre) ||
                 string.IsNullOrEmpty(turista.Correo) ||
                 string.IsNullOrEmpty(turista.Celular) ||
@@ -26,23 +33,28 @@ namespace ApiTuristas.Controllers
                     Estado = "Error",
                     Codigo = "400",
                     Mensaje = "Todos los campos son obligatorios",
-                    Datos = null
+                    Datos = {}
                 });
             }
 
-            if (turistas.Any(x => x.Correo == turista.Correo))
+            // Verificar si el correo ya existe en la BD
+            var correoExiste = await _context.turistas
+                .AnyAsync(x => x.Correo == turista.Correo);
+
+            if (correoExiste)
             {
                 return BadRequest(new ApiResponse<string>
                 {
                     Estado = "Error",
                     Codigo = "409",
                     Mensaje = "El correo ya está registrado",
-                    Datos = null
+                    Datos = {}
                 });
             }
 
-            turista.Id = turistas.Count + 1;
-            turistas.Add(turista);
+            // Agregar el turista a la BD
+            _context.turistas.Add(turista);
+            await _context.SaveChangesAsync(); // El Id se genera automáticamente
 
             return Ok(new ApiResponse<Turista>
             {
@@ -55,11 +67,13 @@ namespace ApiTuristas.Controllers
 
         // ================= LOGIN =================
         [HttpPost("login")]
-        public ActionResult Login([FromBody] Turista login)
+        public async Task<ActionResult> Login([FromBody] Turista login)
         {
-            var turista = turistas.FirstOrDefault(x =>
-                x.Correo == login.Correo &&
-                x.Contraseña == login.Contraseña    );
+            // Buscar en la BD por correo y contraseña
+            var turista = await _context.turistas
+                .FirstOrDefaultAsync(x =>
+                    x.Correo == login.Correo &&
+                    x.Contraseña == login.Contraseña);
 
             if (turista == null)
             {
@@ -68,7 +82,7 @@ namespace ApiTuristas.Controllers
                     Estado = "Error",
                     Codigo = "401",
                     Mensaje = "Credenciales incorrectas",
-                    Datos = null
+                    Datos = {}
                 });
             }
 
@@ -81,32 +95,24 @@ namespace ApiTuristas.Controllers
             });
         }
 
-        // ================= HOME =================
-        /*[HttpGet("home/{id}")]
-        public ActionResult Home(int id)
-        {
-            var turista = turistas.FirstOrDefault(x => x.Id == id);
-
-            if (turista == null)
-                return NotFound();
-
-            return Ok(new ApiResponse<string>
-            {
-                Estado = "Ok",
-                Codigo = "200",
-                Mensaje = $"Bienvenido {turista.Nombre}",
-                Datos = "Contenido principal de la app de turismo"
-            });
-        }*/
-
         // ================= PERFIL =================
         [HttpGet("perfil/{id}")]
-        public ActionResult GetPerfil(int id)
+        public async Task<ActionResult> GetPerfil(int id)
         {
-            var turista = turistas.FirstOrDefault(x => x.Id == id);
+            // Buscar turista por ID en la BD
+            var turista = await _context.turistas
+                .FindAsync(id);
 
             if (turista == null)
-                return NotFound();
+            {
+                return NotFound(new ApiResponse<string>
+                {
+                    Estado = "Error",
+                    Codigo = "404",
+                    Mensaje = "Turista no encontrado",
+                    Datos = {}
+                });
+            }
 
             return Ok(new ApiResponse<Turista>
             {
@@ -119,9 +125,11 @@ namespace ApiTuristas.Controllers
 
         // ================= EDITAR PERFIL =================
         [HttpPut("perfil/{id}")]
-        public ActionResult UpdatePerfil(int id, [FromBody] Turista datos)
+        public async Task<ActionResult> UpdatePerfil(int id, [FromBody] Turista datos)
         {
-            var turista = turistas.FirstOrDefault(x => x.Id == id);
+            // Buscar turista en la BD
+            var turista = await _context.turistas
+                .FindAsync(id);
 
             if (turista == null)
             {
@@ -130,13 +138,17 @@ namespace ApiTuristas.Controllers
                     Estado = "Error",
                     Codigo = "404",
                     Mensaje = "El turista no existe",
-                    Datos = null
+                    Datos = {}
                 });
             }
 
+            // Actualizar campos
             turista.Nombre = datos.Nombre;
             turista.Correo = datos.Correo;
             turista.Celular = datos.Celular;
+
+            // Guardar cambios en la BD
+            await _context.SaveChangesAsync();
 
             return Ok(new ApiResponse<Turista>
             {

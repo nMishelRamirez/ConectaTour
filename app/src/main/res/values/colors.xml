@@ -2,6 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <!-- Fondo de la Splash Screen -->
+
+    <color name="primary">#008577</color>      <color name="primary_variant">#00574B</color>
+    <color name="secondary">#D81B60</color>    <color name="background_light">#FFFFFF</color>
+    <color name="surface_light">#FFFFFF</color>
+
     <color name="splash_background">#FFFFFF</color>
 </resources>

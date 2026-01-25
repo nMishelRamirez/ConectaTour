@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
 
     // CORRECCIÓN: Usamos 10.0.2.2 para conectar desde el Emulador a la PC
-    private const val BASE_URL = "http://192.168.100.8:5030/"
+    private const val BASE_URL = "http://192.168.1.11:5030/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -29,4 +29,6 @@ object RetrofitClient {
         .build()
 
     val apiService: TuristasApiService = retrofit.create(TuristasApiService::class.java)
+    val atractivosApi: AtractivoApiService = retrofit.create(AtractivoApiService::class.java)
+
 }

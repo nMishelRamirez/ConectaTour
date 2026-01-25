@@ -10,7 +10,8 @@ public class AtractivoTuristico
     public string Descripcion { get; set; }
     public string Direccion { get; set; }
     public string Horario { get; set; }
-    public decimal PrecioEntrada { get; set; }
+    public string PrecioEntrada { get; set; }
+    public string Actividades { get; set; }
     public string ImagenPrincipal { get; set; }
 
     public int CategoriaId { get; set; }

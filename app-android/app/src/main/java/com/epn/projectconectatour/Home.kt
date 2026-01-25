@@ -28,7 +28,7 @@ class Home : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_about -> {
-                    loadFragment(ProfileFragment()) // Asegúrate de tener ProfileFragment creado
+                    loadFragment(ProfileFragment())
                     true
                 }
                 else -> false

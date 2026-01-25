@@ -2,34 +2,40 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiTuristas.Data;
 
-namespace ApiTuristas.Controllers
+namespace ApiAtractivo.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class AtractivosController : ControllerBase
     {
-        private readonly TurismoContext _context;
+        private readonly AppDbContext _context;
 
-        public AtractivosController(TurismoContext context)
+        public AtractivosController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: api/atractivos
-        [HttpGet]
-        public async Task<IActionResult> GetAtractivos()
+        // GET: api/Atractivos/Home
+        [HttpGet("Home")]
+        public async Task<IActionResult> GetAtractivosHome()
         {
             var atractivos = await _context.Atractivos
                 .Include(a => a.Categoria)
-                .Include(a => a.Imagenes)
+                .Select(a => new
+                {
+                    Id = a.AtractivoId,
+                    Nombre = a.Nombre,
+                    ImagenPrincipal = a.ImagenPrincipal,
+                    Categoria = a.Categoria.Nombre
+                })
                 .ToListAsync();
 
             return Ok(atractivos);
         }
 
-        // GET: api/atractivos/1
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAtractivo(int id)
+        // GET: api/Atractivos/Detalle/id
+        [HttpGet("Detalle/{id}")]
+        public async Task<IActionResult> GetAtractivoDetalle(int id)
         {
             var atractivo = await _context.Atractivos
                 .Include(a => a.Categoria)
@@ -39,19 +45,26 @@ namespace ApiTuristas.Controllers
             if (atractivo == null)
                 return NotFound();
 
-            return Ok(atractivo);
-        }
+            var detalle = new
+            {
+                InformacionGeneral = new
+                {
+                    Nombre = atractivo.Nombre,
+                    Descripcion = atractivo.Descripcion,
+                    Direccion = atractivo.Direccion
+                },
+                InformacionAdicional = new
+                {
+                    Horario = atractivo.Horario,
+                    PrecioEntrada = atractivo.PrecioEntrada,
+                    Actividades = atractivo.Actividades,
+                    ImagenesAdicionales = atractivo.Imagenes.Select(i => i.UrlImagen).ToList()
+                },
+                ImagenPrincipal = atractivo.ImagenPrincipal,
+                Categoria = atractivo.Categoria.Nombre
+            };
 
-        // GET: api/atractivos/categoria/2
-        [HttpGet("categoria/{categoriaId}")]
-        public async Task<IActionResult> GetAtractivosPorCategoria(int categoriaId)
-        {
-            var atractivos = await _context.Atractivos
-                .Where(a => a.CategoriaId == categoriaId)
-                .Include(a => a.Imagenes)
-                .ToListAsync();
-
-            return Ok(atractivos);
+            return Ok(detalle);
         }
     }
 }

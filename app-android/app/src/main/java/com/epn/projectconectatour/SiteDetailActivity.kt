@@ -34,7 +34,7 @@ class SiteDetailActivity : AppCompatActivity() {
     private lateinit var tabAboutIndicator: View
     private lateinit var tabInfoIndicator: View
     private lateinit var backButton: ImageView
-    private lateinit var ivRouteMap: ImageView // para el mapa si se usa
+    private lateinit var ivRouteMap: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

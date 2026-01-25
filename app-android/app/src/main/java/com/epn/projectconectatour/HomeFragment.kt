@@ -41,9 +41,7 @@ class HomeFragment : Fragment() {
         cargarAtractivos()
     }
 
-    // ===============================
     // LLAMADA A LA API
-    // ===============================
     private fun cargarAtractivos() {
         RetrofitClient.atractivosApi.getAtractivosHome()
             .enqueue(object : Callback<List<AtractivoHome>> {
@@ -65,9 +63,7 @@ class HomeFragment : Fragment() {
             })
     }
 
-    // ===============================
     // ADAPTER
-    // ===============================
     inner class SitesAdapter(private val siteList: List<AtractivoHome>) :
         RecyclerView.Adapter<SitesAdapter.SiteViewHolder>() {
 

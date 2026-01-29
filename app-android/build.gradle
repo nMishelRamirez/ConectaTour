@@ -1,0 +1,13 @@
+// build.gradle (Project: ConectaTour) - El archivo raíz
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
+    // Este plugin es necesario para que funcione Kotlin 2.0 y Compose
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false
+    id("com.google.gms.google-services") version "4.4.2" apply false
+}
+
+// Tarea para limpiar el proyecto (ayuda a resolver errores de cache)
+tasks.register('clean', Delete) {
+    delete rootProject.buildDir
+}

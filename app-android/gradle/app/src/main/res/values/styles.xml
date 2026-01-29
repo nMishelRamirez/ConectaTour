@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema para la Splash Screen -->
+    <style name="Theme.MyApp.Splash" parent="Theme.SplashScreen">
+        <!-- Fondo de la Splash Screen (puedes cambiarlo a un color definido en colors.xml) -->
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+
+        <!-- Logo de la Splash Screen (un drawable que puedes colocar en la carpeta res/drawable) -->
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_round</item>
+
+        <!-- Duración de la animación (si deseas configurarla, es opcional) -->
+        <item name="android:windowSplashScreenAnimationDuration">1000</item>
+    </style>
+
+</resources>

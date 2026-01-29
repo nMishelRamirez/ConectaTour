@@ -11,10 +11,11 @@ interface TuristasApiService {
     @POST("api/turistas/login")
     suspend fun login(@Body request: LoginRequest): Response<ApiResponse<Turista>>
 
-    // Para tu perfil:
-    @GET("api/turistas/{id}")
+    // SE AGREGA "perfil/" A LA RUTA
+    @GET("api/turistas/perfil/{id}")
     suspend fun getTurista(@Path("id") id: Int): Response<ApiResponse<Turista>>
 
-    @PUT("api/turistas/{id}")
+    // SE AGREGA "perfil/" A LA RUTA
+    @PUT("api/turistas/perfil/{id}")
     suspend fun updateTurista(@Path("id") id: Int, @Body turista: Turista): Response<ApiResponse<Turista>>
-}
+}//404

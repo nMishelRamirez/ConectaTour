@@ -14,7 +14,6 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Imagen circular del destino -->
         <ImageView
             android:id="@+id/destinationImageView"
             android:layout_width="56dp"
@@ -25,13 +24,12 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- Nombre del destino -->
         <TextView
             android:id="@+id/destinationNameTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="16dp"
             android:text="@string/Fragment_near_me_Item_destination_Destiny_name"
             android:textColor="@android:color/black"
             android:textSize="14sp"
@@ -42,19 +40,33 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- Botón Ver detalles -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/detailsButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/Fragment_near_me_Item_destination_Show_details"
-            android:textColor="@android:color/black"
+            android:textColor="@android:color/white"
             android:backgroundTint="#4CAF50"
             app:cornerRadius="8dp"
-            android:textSize="12sp"
+            android:textSize="10sp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/mapButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/mapa"
+            android:textSize="10sp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:icon="@android:drawable/ic_dialog_map"
+            app:layout_constraintTop_toBottomOf="@id/detailsButton"
+            app:layout_constraintEnd_toEndOf="@id/detailsButton"
+            app:layout_constraintStart_toStartOf="@id/detailsButton" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

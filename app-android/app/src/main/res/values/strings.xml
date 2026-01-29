@@ -150,4 +150,5 @@
     <string name="Fragment_near_me_Item_destination_Destiny_image">Imagen del destino</string>
     <string name="Fragment_near_me_Item_destination_Destiny_name">Nombre del destino</string>
     <string name="Fragment_near_me_Item_destination_Show_details">Ver detalles</string>
+    <string name="mapa">Mapa</string>
 </resources>

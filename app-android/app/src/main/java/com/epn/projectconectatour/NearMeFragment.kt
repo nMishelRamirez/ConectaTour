@@ -8,10 +8,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.MotionEvent
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ScrollView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -46,9 +48,6 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
-
-        // IDs de los atractivos que queremos mostrar (5-6 lugares)
-        private val FEATURED_SITES = listOf(1, 2, 40, 29, 30, 22)
     }
 
 
@@ -86,6 +85,7 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
 
         // Solicitar permisos de ubicación
         checkAndRequestLocationPermission()
+        fixScrollConflict()
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -99,6 +99,44 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
         enableUserLocation()
     }
 
+    fun showOnlyOneMarker(site: SiteWithCoordinates) {
+        googleMap?.clear() // Borra todos los marcadores previos
+        val position = LatLng(site.latitude, site.longitude)
+        val marker = googleMap?.addMarker(
+            MarkerOptions()
+                .position(position)
+                .title(site.title)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+        )
+        marker?.showInfoWindow() // Muestra el nombre automáticamente
+    }
+
+    fun focusOnSite(latitude: Double, longitude: Double) {
+        val position = LatLng(latitude, longitude)
+        googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 16f))
+        // Opcional: Desplazar el ScrollView hacia arriba para ver el mapa
+        view?.findViewById<ScrollView>(R.id.nearMeScrollView)?.smoothScrollTo(0, 0)
+    }
+
+    private fun fixScrollConflict() {
+        val transparentView = view?.findViewById<View>(R.id.map_transparent_view)
+        transparentView?.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // El usuario toca el mapa, bloqueamos el scroll del padre
+                    mapView.parent.requestDisallowInterceptTouchEvent(true)
+                    false
+                }
+                MotionEvent.ACTION_UP -> {
+                    // El usuario suelta, permitimos el scroll de nuevo
+                    mapView.parent.requestDisallowInterceptTouchEvent(false)
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
     private fun cargarAtractivosCercanos() {
         RetrofitClient.atractivosApi.getAtractivosNearMe()
             .enqueue(object : Callback<List<AtractivoNearMe>> {
@@ -109,8 +147,7 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
                     if (response.isSuccessful) {
                         sites.clear()
 
-                        // Filtrar solo los atractivos que están en FEATURED_SITES
-                        response.body()?.filter { it.id in FEATURED_SITES }?.forEach { atractivo ->
+                        response.body()?.forEach { atractivo ->
                             sites.add(
                                 SiteWithCoordinates(
                                     id = atractivo.id,
@@ -322,6 +359,7 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
             val nameTextView: TextView = itemView.findViewById(R.id.destinationNameTextView)
             val imageView: ImageView = itemView.findViewById(R.id.destinationImageView)
             val detailsButton: MaterialButton = itemView.findViewById(R.id.detailsButton)
+            val mapButton: MaterialButton = itemView.findViewById(R.id.mapButton)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DestinationViewHolder {
@@ -344,11 +382,22 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
                 .circleCrop()
                 .into(holder.imageView)
 
+            holder.mapButton.setOnClickListener {
+                // 1. Mostrar SOLO este marcador en el mapa
+                this@NearMeFragment.showOnlyOneMarker(site)
+                // 2. Centrar cámara y subir scroll
+                this@NearMeFragment.focusOnSite(site.latitude, site.longitude)
+            }
+
             holder.detailsButton.setOnClickListener {
                 val intent = Intent(holder.itemView.context, SiteDetailActivity::class.java).apply {
-                    putExtra("SITE_ID", site.id)
+                    putExtra("id", site.id)
                 }
                 holder.itemView.context.startActivity(intent)
+            }
+
+            holder.itemView.setOnClickListener {
+                this@NearMeFragment.focusOnSite(site.latitude, site.longitude)
             }
         }
 

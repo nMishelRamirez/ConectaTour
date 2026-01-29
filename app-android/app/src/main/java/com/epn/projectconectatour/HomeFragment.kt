@@ -13,14 +13,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.epn.projectconectatour.network.RetrofitClient
 import com.epn.projectconectatour.network.models.AtractivoHome
+import com.epn.projectconectatour.network.models.CategoriaHome
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 class HomeFragment : Fragment() {
 
+    //private val atractivos = mutableListOf<AtractivoHome>()
+
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: SitesAdapter
-    private val atractivos = mutableListOf<AtractivoHome>()
+    private lateinit var adapter: CategoryAdapter
+    private val categorias = mutableListOf<CategoriaHome>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,14 +32,13 @@ class HomeFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         recyclerView = view.findViewById(R.id.sitesRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-        adapter = SitesAdapter(atractivos)
-        recyclerView.adapter = adapter
+        recyclerView.adapter = CategoryAdapter(categorias)
 
         cargarAtractivos()
     }
@@ -51,9 +53,20 @@ class HomeFragment : Fragment() {
                     response: Response<List<AtractivoHome>>
                 ) {
                     if (response.isSuccessful) {
-                        atractivos.clear()
-                        atractivos.addAll(response.body() ?: emptyList())
-                        adapter.notifyDataSetChanged()
+                        val lista = response.body().orEmpty()
+
+                        val agrupados = lista
+                            .groupBy { it.categoria }
+                            .map { (categoria, atractivos) ->
+                                CategoriaHome(
+                                    categoria = categoria,
+                                    atractivos = atractivos.take(10)
+                                )
+                            }
+
+                        categorias.clear()
+                        categorias.addAll(agrupados)
+                        recyclerView.adapter?.notifyDataSetChanged()
                     }
                 }
 
@@ -61,7 +74,7 @@ class HomeFragment : Fragment() {
                     t.printStackTrace()
                 }
             })
-    }
+        }
 
     // ADAPTER
     inner class SitesAdapter(private val siteList: List<AtractivoHome>) :

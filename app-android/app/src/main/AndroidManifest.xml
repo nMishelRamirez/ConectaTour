@@ -32,6 +32,7 @@
         <activity android:name=".ForgotPassword" android:exported="false" />
         <activity android:name=".LoginActivity" android:exported="false" />
         <activity android:name=".RegisterActivity" android:exported="false" />
+        <activity android:name=".CategoryDetailActivity" android:exported="false" />
         <activity android:name=".SiteDetailActivity" android:exported="false" />
 
     </application>

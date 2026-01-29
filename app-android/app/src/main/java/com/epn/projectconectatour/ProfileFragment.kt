@@ -1,6 +1,7 @@
 package com.epn.projectconectatour
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -9,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.epn.projectconectatour.databinding.FragmentProfileBinding
 import com.epn.projectconectatour.network.RetrofitClient
 import com.epn.projectconectatour.network.models.Turista
+import com.epn.projectconectatour.network.models.ApiResponse
 import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
@@ -24,11 +26,23 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         val userId = sharedPref.getInt("userId", 0)
 
         if (userId != 0) {
+            // 1. Cargar lo que tenemos a la mano (Local)
             cargarDatosLocales(sharedPref)
+            // 2. Refrescar con lo que diga el servidor (.NET)
+            cargarDatosDesdeAPI(userId)
         }
 
+        // Configuración de botones
         binding.btnEdit.setOnClickListener { toggleEditMode(true) }
         binding.btnSave.setOnClickListener { updateProfile(userId) }
+
+        // Botón Cerrar Sesión
+        binding.btnLogout.setOnClickListener {
+            cerrarSesion()
+        }
+
+        // Al iniciar, modo lectura
+        toggleEditMode(false)
     }
 
     private fun cargarDatosLocales(sharedPref: android.content.SharedPreferences) {
@@ -36,9 +50,28 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         binding.etCelular.setText(sharedPref.getString("userPhone", ""))
         binding.etCorreo.setText(sharedPref.getString("userEmail", ""))
         binding.etContrasena.setText(sharedPref.getString("userPassword", ""))
-
-        // El correo no es editable
         binding.etCorreo.isEnabled = false
+    }
+
+    private fun cargarDatosDesdeAPI(id: Int) {
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitClient.apiService.getTurista(id)
+                if (response.isSuccessful) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.estado == "Ok") {
+                        val t = apiResponse.datos
+                        binding.etNombre.setText(t?.nombre)
+                        binding.etCelular.setText(t?.celular)
+                        binding.etCorreo.setText(t?.correo)
+                        // Actualizamos las preferencias con la info real del servidor
+                        t?.let { actualizarPreferencias(it) }
+                    }
+                }
+            } catch (e: Exception) {
+                // Si falla la red, nos quedamos con los datos locales silenciosamente
+            }
+        }
     }
 
     private fun toggleEditMode(isEditing: Boolean) {
@@ -61,6 +94,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         lifecycleScope.launch {
             try {
+                // Importante: La interfaz debe tener la ruta api/turistas/perfil/{id}
                 val response = RetrofitClient.apiService.updateTurista(id, updatedTurista)
 
                 if (response.isSuccessful) {
@@ -69,20 +103,29 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     if (apiResponse?.estado == "Ok") {
                         Toast.makeText(requireContext(), "¡Perfil Actualizado!", Toast.LENGTH_SHORT).show()
 
-                        // CORRECCIÓN AQUÍ:
-                        // Extraemos el objeto Turista que viene dentro de 'datos'
                         val turistaConfirmado = apiResponse.datos ?: updatedTurista
-
                         actualizarPreferencias(turistaConfirmado)
                         toggleEditMode(false)
                     } else {
                         Toast.makeText(requireContext(), apiResponse?.mensaje ?: "Error", Toast.LENGTH_SHORT).show()
                     }
+                } else {
+                    Toast.makeText(requireContext(), "Error del servidor: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Error de red: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun cerrarSesion() {
+        val sharedPref = requireActivity().getSharedPreferences("ConectaTourPrefs", Context.MODE_PRIVATE)
+        sharedPref.edit().clear().apply() // Limpia el ID y datos guardados
+
+        Toast.makeText(requireContext(), "Sesión cerrada", Toast.LENGTH_SHORT).show()
+
+        // Cierra la actividad actual para volver al Login
+        requireActivity().finish()
     }
 
     private fun actualizarPreferencias(turista: Turista) {
@@ -90,6 +133,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         with(sharedPref.edit()) {
             putString("userName", turista.nombre)
             putString("userPhone", turista.celular)
+            putString("userEmail", turista.correo)
             putString("userPassword", turista.contraseña)
             apply()
         }

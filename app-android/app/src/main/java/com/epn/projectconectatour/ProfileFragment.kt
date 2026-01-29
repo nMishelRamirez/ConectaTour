@@ -1,78 +1,102 @@
 package com.epn.projectconectatour
 
+import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.epn.projectconectatour.databinding.FragmentProfileBinding
+import com.epn.projectconectatour.network.RetrofitClient
+import com.epn.projectconectatour.network.models.Turista
+import kotlinx.coroutines.launch
 
-class ProfileFragment : Fragment() {
+class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
-    // _binding es la conexión directa con tu diseño XML (fragment_profile.xml)
-    // Nos evita tener que usar "findViewById" a cada rato.
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        // Inflamos el diseño: convertimos el XML en algo que Android puede mostrar
-        _binding = FragmentProfileBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentProfileBinding.bind(view)
 
-        // Aquí es donde "inicializamos" la pantalla
-        setupListeners()
-        cargarDatosDePrueba() // TODO: Borrar esto cuando conectemos la API
+        val sharedPref = requireActivity().getSharedPreferences("ConectaTourPrefs", Context.MODE_PRIVATE)
+        val userId = sharedPref.getInt("userId", 0)
+
+        if (userId != 0) {
+            cargarDatosLocales(sharedPref)
+        }
+
+        binding.btnEdit.setOnClickListener { toggleEditMode(true) }
+        binding.btnSave.setOnClickListener { updateProfile(userId) }
     }
 
-    private fun setupListeners() {
-        // Configurar qué pasa al dar clic en "Guardar"
-        binding.btnSave.setOnClickListener {
-            if (validarCampos()) {
-                val nombre = binding.etName.text.toString()
+    private fun cargarDatosLocales(sharedPref: android.content.SharedPreferences) {
+        binding.etNombre.setText(sharedPref.getString("userName", ""))
+        binding.etCelular.setText(sharedPref.getString("userPhone", ""))
+        binding.etCorreo.setText(sharedPref.getString("userEmail", ""))
+        binding.etContrasena.setText(sharedPref.getString("userPassword", ""))
 
-                // AQUÍ irá la conexión con la API más adelante
-                Toast.makeText(requireContext(), "Guardando datos de $nombre...", Toast.LENGTH_SHORT).show()
+        // El correo no es editable
+        binding.etCorreo.isEnabled = false
+    }
+
+    private fun toggleEditMode(isEditing: Boolean) {
+        binding.etNombre.isEnabled = isEditing
+        binding.etCelular.isEnabled = isEditing
+        binding.etContrasena.isEnabled = isEditing
+
+        binding.btnSave.visibility = if (isEditing) View.VISIBLE else View.GONE
+        binding.btnEdit.visibility = if (isEditing) View.GONE else View.VISIBLE
+    }
+
+    private fun updateProfile(id: Int) {
+        val updatedTurista = Turista(
+            id = id,
+            nombre = binding.etNombre.text.toString(),
+            celular = binding.etCelular.text.toString(),
+            correo = binding.etCorreo.text.toString(),
+            contraseña = binding.etContrasena.text.toString()
+        )
+
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitClient.apiService.updateTurista(id, updatedTurista)
+
+                if (response.isSuccessful) {
+                    val apiResponse = response.body()
+
+                    if (apiResponse?.estado == "Ok") {
+                        Toast.makeText(requireContext(), "¡Perfil Actualizado!", Toast.LENGTH_SHORT).show()
+
+                        // CORRECCIÓN AQUÍ:
+                        // Extraemos el objeto Turista que viene dentro de 'datos'
+                        val turistaConfirmado = apiResponse.datos ?: updatedTurista
+
+                        actualizarPreferencias(turistaConfirmado)
+                        toggleEditMode(false)
+                    } else {
+                        Toast.makeText(requireContext(), apiResponse?.mensaje ?: "Error", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
-
-        // Configurar clic en la foto
-        binding.imgProfile.setOnClickListener {
-            Toast.makeText(requireContext(), "Abrir galería...", Toast.LENGTH_SHORT).show()
-        }
     }
 
-    // Una validación básica para que no envíen datos vacíos
-    private fun validarCampos(): Boolean {
-        if (binding.etName.text.isNullOrEmpty()) {
-            binding.etName.error = "El nombre es obligatorio"
-            return false
+    private fun actualizarPreferencias(turista: Turista) {
+        val sharedPref = requireActivity().getSharedPreferences("ConectaTourPrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("userName", turista.nombre)
+            putString("userPhone", turista.celular)
+            putString("userPassword", turista.contraseña)
+            apply()
         }
-        if (binding.etPhone.text.isNullOrEmpty()) {
-            binding.etPhone.error = "El celular es obligatorio"
-            return false
-        }
-        return true
-    }
-
-    // Función temporal para que veas cómo se ve con datos rellenos
-    private fun cargarDatosDePrueba() {
-        binding.etName.setText("Martín Ejemplo")
-        binding.etEmail.setText("martin@tour.com")
-        binding.etNationality.setText("Ecuador")
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Limpiamos la memoria al cerrar la pantalla
         _binding = null
     }
 }

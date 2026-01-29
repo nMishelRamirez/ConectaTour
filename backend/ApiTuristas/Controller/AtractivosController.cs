@@ -33,6 +33,25 @@ namespace ApiAtractivo.Controllers
             return Ok(atractivos);
         }
 
+        [HttpGet("NearMe")]
+        public async Task<IActionResult> GetAtractivosNearMe()
+        {
+            var atractivos = await _context.Atractivos
+                .Include(a => a.Categoria)
+                .Select(a => new
+                {
+                    Id = a.AtractivoId,
+                    Nombre = a.Nombre,
+                    ImagenPrincipal = a.ImagenPrincipal,
+                    Categoria = a.Categoria.Nombre,
+                    Latitud = a.Latitud,
+                    Longitud = a.Longitud
+                })
+                .ToListAsync();
+
+            return Ok(atractivos);
+        }
+
         // GET: api/Atractivos/Detalle/id
         [HttpGet("Detalle/{id}")]
         public async Task<IActionResult> GetAtractivoDetalle(int id)

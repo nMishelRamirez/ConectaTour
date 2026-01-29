@@ -9,6 +9,9 @@ interface AtractivoApiService {
     @GET("api/Atractivos/Home")
     fun getAtractivosHome(): Call<List<AtractivoHome>>
 
+    @GET("api/Atractivos/NearMe")
+    fun getAtractivosNearMe(): Call<List<AtractivoNearMe>>
+
     @GET("api/Atractivos/Detalle/{id}")
     fun getAtractivoDetalle(@Path("id") id: Int): Call<AtractivoDetalle>
 }

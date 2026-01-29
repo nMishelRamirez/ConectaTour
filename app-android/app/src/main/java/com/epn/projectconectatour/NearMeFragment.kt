@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.epn.projectconectatour.network.RetrofitClient
-import com.epn.projectconectatour.network.models.AtractivoHome
+import com.epn.projectconectatour.network.models.AtractivoNearMe
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -51,15 +51,6 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
         private val FEATURED_SITES = listOf(1, 2, 40, 29, 30, 22)
     }
 
-    // Mapa hardcodeado de coordenadas (temporal)
-    private val coordinatesMap = mapOf(
-        1 to LatLng(-0.214587, -78.508392),   // Virgen del Panecillo
-        2 to LatLng(-0.002457, -78.455734),   // Mitad del Mundo
-        40 to LatLng(-0.214920, -78.506500),  // Basílica del Voto Nacional
-        29 to LatLng(-0.216667, -78.516667),  // Iglesia Compañía de Jesús
-        30 to LatLng(-0.216667, -78.516667),  // Convento de San Francisco
-        22 to LatLng(-0.220833, -78.512778)   // Catedral Metropolitana
-    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -102,37 +93,35 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
         googleMap?.uiSettings?.apply {
             isZoomControlsEnabled = true
             isMyLocationButtonEnabled = true
+            isCompassEnabled = true
+            isMapToolbarEnabled = true
         }
         enableUserLocation()
     }
 
     private fun cargarAtractivosCercanos() {
-        RetrofitClient.atractivosApi.getAtractivosHome()
-            .enqueue(object : Callback<List<AtractivoHome>> {
+        RetrofitClient.atractivosApi.getAtractivosNearMe()
+            .enqueue(object : Callback<List<AtractivoNearMe>> {
                 override fun onResponse(
-                    call: Call<List<AtractivoHome>>,
-                    response: Response<List<AtractivoHome>>
+                    call: Call<List<AtractivoNearMe>>,
+                    response: Response<List<AtractivoNearMe>>
                 ) {
                     if (response.isSuccessful) {
                         sites.clear()
 
                         // Filtrar solo los atractivos que están en FEATURED_SITES
                         response.body()?.filter { it.id in FEATURED_SITES }?.forEach { atractivo ->
-                            val coords = coordinatesMap[atractivo.id]
-
-                            if (coords != null) {
-                                sites.add(
-                                    SiteWithCoordinates(
-                                        id = atractivo.id,
-                                        title = atractivo.nombre,
-                                        description = "",  // No viene en AtractivoHome
-                                        imageUrl = atractivo.imagenPrincipal,
-                                        category = atractivo.categoria,
-                                        latitude = coords.latitude,
-                                        longitude = coords.longitude
-                                    )
+                            sites.add(
+                                SiteWithCoordinates(
+                                    id = atractivo.id,
+                                    title = atractivo.nombre,
+                                    description = "",
+                                    imageUrl = atractivo.imagenPrincipal,
+                                    category = atractivo.categoria,
+                                    latitude = atractivo.latitud,
+                                    longitude = atractivo.longitud
                                 )
-                            }
+                            )
                         }
 
                         // Ordenar por distancia si tenemos ubicación del usuario
@@ -147,7 +136,7 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
                     }
                 }
 
-                override fun onFailure(call: Call<List<AtractivoHome>>, t: Throwable) {
+                override fun onFailure(call: Call<List<AtractivoNearMe>>, t: Throwable) {
                     Toast.makeText(context, "Error de red: ${t.message}", Toast.LENGTH_SHORT).show()
                     t.printStackTrace()
                 }
@@ -174,50 +163,38 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun enableUserLocation() {
-        // Verificar permisos
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // Si no tenemos permisos, solicitarlos
             checkAndRequestLocationPermission()
             return
         }
 
-        // IMPORTANTE: Habilitar la capa de "Mi ubicación" en el mapa
         try {
             googleMap?.isMyLocationEnabled = true
             googleMap?.uiSettings?.isMyLocationButtonEnabled = true
 
-            // Obtener la última ubicación conocida
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     userLocation = LatLng(location.latitude, location.longitude)
-
-                    // Calcular distancias
                     calculateDistancesAndSort(userLocation!!)
-
-                    // Actualizar marcadores y lista
                     addMarkersToMap()
                     adapter.notifyDataSetChanged()
 
-                    // Centrar cámara
                     if (sites.isNotEmpty()) {
                         centerCameraOnLocations()
                     } else {
-                        // Si no hay sitios aún, centrar en la ubicación del usuario
                         googleMap?.animateCamera(
                             CameraUpdateFactory.newLatLngZoom(userLocation!!, 13f)
                         )
                     }
                 } else {
-                    // No hay ubicación disponible, solicitar actualización
                     requestNewLocationData()
                 }
             }.addOnFailureListener { e ->
                 Toast.makeText(context, "Error al obtener ubicación: ${e.message}", Toast.LENGTH_SHORT).show()
-                // Centrar en Quito por defecto
                 val quitoCenter = LatLng(-0.1807, -78.4678)
                 googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(quitoCenter, 12f))
                 addMarkersToMap()
@@ -227,7 +204,6 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    // Método para solicitar una nueva ubicación si lastLocation es null
     private fun requestNewLocationData() {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
@@ -239,10 +215,10 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
 
         val locationRequest = com.google.android.gms.location.LocationRequest.Builder(
             com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
-            10000 // 10 segundos
+            10000
         ).apply {
-            setMinUpdateIntervalMillis(5000) // 5 segundos
-            setMaxUpdates(1) // Solo una actualización
+            setMinUpdateIntervalMillis(5000)
+            setMaxUpdates(1)
         }.build()
 
         val locationCallback = object : com.google.android.gms.location.LocationCallback() {
@@ -261,7 +237,6 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
                         )
                     }
 
-                    // Remover actualizaciones después de obtener la ubicación
                     fusedLocationClient.removeLocationUpdates(this)
                 }
             }
@@ -310,16 +285,13 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
         if (sites.isEmpty() || googleMap == null) return
 
         val builder = LatLngBounds.Builder()
-
         userLocation?.let { builder.include(it) }
-
         sites.forEach { site ->
             builder.include(LatLng(site.latitude, site.longitude))
         }
 
         val bounds = builder.build()
         val padding = 100
-
         googleMap?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
     }
 
@@ -383,7 +355,6 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
         override fun getItemCount() = sites.size
     }
 
-    // Ciclo de vida del MapView
     override fun onResume() {
         super.onResume()
         mapView.onResume()
@@ -410,7 +381,6 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
     }
 }
 
-// Data class temporal con coordenadas
 data class SiteWithCoordinates(
     val id: Int,
     val title: String,

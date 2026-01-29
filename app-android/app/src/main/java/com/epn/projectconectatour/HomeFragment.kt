@@ -1,51 +1,83 @@
 package com.epn.projectconectatour
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.fragment.app.Fragment
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.epn.projectconectatour.network.RetrofitClient
+import com.epn.projectconectatour.network.models.AtractivoHome
+import com.epn.projectconectatour.network.models.CategoriaHome
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 class HomeFragment : Fragment() {
+
+    //private val atractivos = mutableListOf<AtractivoHome>()
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: CategoryAdapter
+    private val categorias = mutableListOf<CategoriaHome>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflar el layout del fragmento
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Configurar el RecyclerView
-        val recyclerView = view.findViewById<RecyclerView>(R.id.sitesRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(context)
+        recyclerView = view.findViewById(R.id.sitesRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.adapter = CategoryAdapter(categorias)
 
-        // Datos de prueba
-        val sites = listOf(
-            Site("Monumento", "Monumento Virgen del Panecillo", "https://vistahermosa.ec/wp-content/uploads/2018/07/panecillo-vista-hermosa.jpg"),
-            Site("Histórico", "Mitad del Mundo", "https://imgs.search.brave.com/-Jz5QNxickBGTlglCVpNAMH3x9sZ9tHURbaqqk-FNUw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzAyLzY5LzUxLzEw/LzM2MF9GXzI2OTUx/MTA2OF9tVlhDTGJI/dTJtTDFyZGNUMWFZ/dlR2QU1TOENYZ2JC/Si5qcGc"),
-            Site("Mirador", "Cruz Loma (Teleférico)", "https://imgs.search.brave.com/719byVKkQKjCEitLOxduYee96SI5YpU6EcGxas4um-c/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pMC53/cC5jb20vd3d3LnRo/ZWdpcmx3aG9nb2Vz/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyMi8wMi90ZWxl/ZmVyaWNvLWhlYWRl/ci1lMTY0NDQ1ODE2/Mjg1OS0xMDI0eDY4/Ny5qcGc_cmVzaXpl/PTc3Miw1MTgmc3Ns/PTE"),
-            Site("Iglesia", "La Basílica del Voto Nacional","https://imgs.search.brave.com/rmjs5veGgi4uWeBIs5whKmu4GJWG9tBys75yg10zkZ0/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9sb3N0/cmF2ZWxlcm9zLmNv/bS93cC1jb250ZW50/L3VwbG9hZHMvMjAy/My8wMi9Db25kb3It/VmlzdGEtODAweDUz/Mi5qcGc")
-        )
-
-        // Asignar el adaptador
-        recyclerView.adapter = SitesAdapter(sites)
+        cargarAtractivos()
     }
 
-    // --- CLASES PARA LA LISTA (ADAPTER Y MODELO) ---
+    // LLAMADA A LA API
+    private fun cargarAtractivos() {
+        RetrofitClient.atractivosApi.getAtractivosHome()
+            .enqueue(object : Callback<List<AtractivoHome>> {
 
-    // Modelo de datos simple
-    data class Site(val category: String, val title: String, val imageUrl: String)
+                override fun onResponse(
+                    call: Call<List<AtractivoHome>>,
+                    response: Response<List<AtractivoHome>>
+                ) {
+                    if (response.isSuccessful) {
+                        val lista = response.body().orEmpty()
 
-    // Adaptador para el RecyclerView
-    inner class SitesAdapter(private val siteList: List<Site>) :
+                        val agrupados = lista
+                            .groupBy { it.categoria }
+                            .map { (categoria, atractivos) ->
+                                CategoriaHome(
+                                    categoria = categoria,
+                                    atractivos = atractivos.take(10)
+                                )
+                            }
+
+                        categorias.clear()
+                        categorias.addAll(agrupados)
+                        recyclerView.adapter?.notifyDataSetChanged()
+                    }
+                }
+
+                override fun onFailure(call: Call<List<AtractivoHome>>, t: Throwable) {
+                    t.printStackTrace()
+                }
+            })
+        }
+
+    // ADAPTER
+    inner class SitesAdapter(private val siteList: List<AtractivoHome>) :
         RecyclerView.Adapter<SitesAdapter.SiteViewHolder>() {
 
         inner class SiteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -62,9 +94,21 @@ class HomeFragment : Fragment() {
 
         override fun onBindViewHolder(holder: SiteViewHolder, position: Int) {
             val site = siteList[position]
-            holder.titleTextView.text = site.title
-            holder.categoryTextView.text = site.category
-            Glide.with(holder.itemView.context).load(site.imageUrl).into(holder.imageView)
+
+            holder.titleTextView.text = site.nombre
+            holder.categoryTextView.text = site.categoria
+
+            Glide.with(holder.itemView.context)
+                .load(site.imagenPrincipal)
+                .placeholder(R.drawable.placeholder)
+                .error(R.drawable.placeholder)
+                .into(holder.imageView)
+
+            holder.itemView.setOnClickListener {
+                val intent = Intent(holder.itemView.context, SiteDetailActivity::class.java)
+                intent.putExtra("id", site.id) // SOLO ID
+                holder.itemView.context.startActivity(intent)
+            }
         }
 
         override fun getItemCount() = siteList.size

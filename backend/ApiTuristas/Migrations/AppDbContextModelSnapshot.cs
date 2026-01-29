@@ -21,6 +21,91 @@ namespace ApiTuristas.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ApiAtractivo.Models.AtractivoTuristico", b =>
+                {
+                    b.Property<int>("AtractivoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AtractivoId"));
+
+                    b.Property<string>("Actividades")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("CategoriaId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Direccion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Horario")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImagenPrincipal")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PrecioEntrada")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("AtractivoId");
+
+                    b.HasIndex("CategoriaId");
+
+                    b.ToTable("Atractivos");
+                });
+
+            modelBuilder.Entity("ApiCategoria.Models.Categoria", b =>
+                {
+                    b.Property<int>("CategoriaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CategoriaId"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("CategoriaId");
+
+                    b.ToTable("Categorias");
+                });
+
+            modelBuilder.Entity("ApiImagen.Models.ImagenAtractivo", b =>
+                {
+                    b.Property<int>("ImagenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ImagenId"));
+
+                    b.Property<int>("AtractivoId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UrlImagen")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ImagenId");
+
+                    b.HasIndex("AtractivoId");
+
+                    b.ToTable("Imagenes");
+                });
+
             modelBuilder.Entity("ApiTuristas.Models.Turista", b =>
                 {
                     b.Property<int>("Id")
@@ -48,6 +133,38 @@ namespace ApiTuristas.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("turistas");
+                });
+
+            modelBuilder.Entity("ApiAtractivo.Models.AtractivoTuristico", b =>
+                {
+                    b.HasOne("ApiCategoria.Models.Categoria", "Categoria")
+                        .WithMany("Atractivos")
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Categoria");
+                });
+
+            modelBuilder.Entity("ApiImagen.Models.ImagenAtractivo", b =>
+                {
+                    b.HasOne("ApiAtractivo.Models.AtractivoTuristico", "Atractivo")
+                        .WithMany("Imagenes")
+                        .HasForeignKey("AtractivoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Atractivo");
+                });
+
+            modelBuilder.Entity("ApiAtractivo.Models.AtractivoTuristico", b =>
+                {
+                    b.Navigation("Imagenes");
+                });
+
+            modelBuilder.Entity("ApiCategoria.Models.Categoria", b =>
+                {
+                    b.Navigation("Atractivos");
                 });
 #pragma warning restore 612, 618
         }

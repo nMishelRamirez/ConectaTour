@@ -115,7 +115,7 @@ class NearMeFragment : Fragment(), OnMapReadyCallback {
         val position = LatLng(latitude, longitude)
         googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 16f))
         // Opcional: Desplazar el ScrollView hacia arriba para ver el mapa
-        view?.findViewById<ScrollView>(R.id.nearMeScrollView)?.smoothScrollTo(0, 0)
+        view?.findViewById<androidx.core.widget.NestedScrollView>(R.id.nearMeScrollView)?.smoothScrollTo(0, 0)
     }
 
     private fun fixScrollConflict() {

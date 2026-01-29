@@ -87,5 +87,13 @@
             android:backgroundTint="#4CAF50"
             android:visibility="gone" />
 
+        <Button
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cerrar Sesión"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#F44336" />
+
     </LinearLayout>
 </ScrollView>

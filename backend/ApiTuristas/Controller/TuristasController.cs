@@ -131,7 +131,7 @@ namespace ApiTuristas.Controllers
             });
         }
 
-        // ================= EDITAR PERFIL =================
+        // ================= EDITAR PERFIL ================= sumar un cerrar sesion en profle frgament manda al login
         [HttpPut("perfil/{id}")]
         public async Task<ActionResult> UpdatePerfil(int id, [FromBody] UpdatePerfilDto dto)
         {

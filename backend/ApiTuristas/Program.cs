@@ -19,7 +19,7 @@ builder.Services.AddCors(options =>
 });
 
 // Cadena de conexión PostgreSQL
-var connectionString = "Host=localhost;Port=5433;Database=api_turistas;Username=postgres;Password=postgres";
+var connectionString = "Host=localhost;Port=5432;Database=api_turistas;Username=postgres;Password=postgres";
 
 // Agregar DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>

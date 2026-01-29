@@ -28,6 +28,10 @@
             </intent-filter>
         </activity>
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAPjSPc6AHA6Vm9TmAhT3lZxOf-1n2AkJ4"/>
+
         <activity android:name=".Home" android:exported="false" />
         <activity android:name=".ForgotPassword" android:exported="false" />
         <activity android:name=".LoginActivity" android:exported="false" />

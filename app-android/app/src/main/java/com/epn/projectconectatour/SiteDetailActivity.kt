@@ -51,7 +51,7 @@ class SiteDetailActivity : AppCompatActivity() {
         tabAboutIndicator = findViewById(R.id.tabAboutIndicator)
         tabInfoIndicator = findViewById(R.id.tabInfoIndicator)
         backButton = findViewById(R.id.backButton)
-        ivRouteMap = findViewById(R.id.ivRouteMap)
+
 
         // OBTENER ID DEL SITIO
         val id = intent.getIntExtra("id", 0)

@@ -30,7 +30,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBQxV7YjNDDBRyaM8HIEKkzKnHl5FNRC-U"/>
+            android:value="AIzaSyC3cxdCLyyxLKxaLJudqLp8-ivXTXo4Qig"/>
 
         <activity android:name=".Home" android:exported="false" />
         <activity android:name=".ForgotPassword" android:exported="false" />

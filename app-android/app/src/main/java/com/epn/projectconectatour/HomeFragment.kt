@@ -2,6 +2,7 @@ package com.epn.projectconectatour
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,12 +18,18 @@ import com.epn.projectconectatour.network.models.CategoriaHome
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.appcompat.widget.SearchView
+import kotlin.collections.component2
+import kotlin.collections.groupBy
+import kotlin.collections.orEmpty
+
 class HomeFragment : Fragment() {
 
     //private val atractivos = mutableListOf<AtractivoHome>()
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: CategoryAdapter
+    private lateinit var searchView: SearchView
     private val categorias = mutableListOf<CategoriaHome>()
 
     override fun onCreateView(
@@ -38,9 +45,15 @@ class HomeFragment : Fragment() {
 
         recyclerView = view.findViewById(R.id.sitesRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.adapter = CategoryAdapter(categorias)
+        adapter = CategoryAdapter(categorias)
+        recyclerView.adapter = adapter
+        searchView = view.findViewById(R.id.searchView)
 
+        // Cargar los datos
         cargarAtractivos()
+        // Configuramos la búsqueda
+        configurarBusqueda()
+
     }
 
     // LLAMADA A LA API
@@ -67,6 +80,7 @@ class HomeFragment : Fragment() {
                         categorias.clear()
                         categorias.addAll(agrupados)
                         recyclerView.adapter?.notifyDataSetChanged()
+                        recyclerView.scrollToPosition(0)
                     }
                 }
 
@@ -75,6 +89,85 @@ class HomeFragment : Fragment() {
                 }
             })
         }
+
+    // ================= BUSQUEDA =================
+    private fun buscarAtractivos(texto: String) {
+        Log.d("Busqueda", "Buscando atractivos con el texto: $texto") // Log de lo que se está buscando
+
+        RetrofitClient.atractivosApi.buscarAtractivos(texto)
+            .enqueue(object : Callback<List<AtractivoHome>> {
+
+                override fun onResponse(
+                    call: Call<List<AtractivoHome>>,
+                    response: Response<List<AtractivoHome>>
+                ) {
+                    if (response.isSuccessful) {
+                        Log.d("Busqueda", "Resultados obtenidos: ${response.body()}")
+                        procesarYMostrar(response.body().orEmpty())
+                    } else {
+                        Log.e("Busqueda", "Error en la respuesta: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<List<AtractivoHome>>, t: Throwable) {
+                    // Verificación de error en la solicitud
+                    Log.e("Busqueda", "Error al hacer la solicitud: ${t.message}")
+                    t.printStackTrace()
+                }
+            })
+    }
+
+    // ================= MOSTRAR =================
+    private fun procesarYMostrar(lista: List<AtractivoHome>) {
+        // Adaptador inicializado
+        if (!::adapter.isInitialized) {
+            Log.e("HomeFragment", "El adaptador no está inicializado correctamente")
+            return
+        }
+        // Filtrar los atractivos en categorías
+        val agrupados = lista
+            .groupBy { it.categoria }
+            .map { (categoria, atractivos) ->
+                CategoriaHome(
+                    categoria = categoria,
+                    atractivos = atractivos
+                )
+            }
+        // Actualizamos la lista de categorías en el adaptador
+        adapter.actualizarCategorias(agrupados)
+    }
+
+
+    // ================= SEARCHVIEW =================
+    private fun configurarBusqueda() {
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                manejarBusqueda(query)
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrBlank()) {
+                    Log.d("Busqueda", "El campo de búsqueda está vacío. Recargando los atractivos.")
+                    cargarAtractivos()
+                } else {
+                    Log.d("Busqueda", "Buscando atractivos con el texto: $newText")
+                    manejarBusqueda(newText)
+
+                }
+                return true
+            }
+
+            private fun manejarBusqueda(texto: String?) {
+                if (texto.isNullOrBlank()) {
+                    cargarAtractivos()
+                } else {
+                    buscarAtractivos(texto)
+                }
+            }
+        })
+    }
 
     // ADAPTER
     inner class SitesAdapter(private val siteList: List<AtractivoHome>) :

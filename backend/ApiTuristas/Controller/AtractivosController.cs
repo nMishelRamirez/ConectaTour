@@ -85,5 +85,49 @@ namespace ApiAtractivo.Controllers
 
             return Ok(detalle);
         }
+        
+        // GET: api/Atractivos/Buscar?query=nombre
+        [HttpGet("Buscar")]
+        public async Task<IActionResult> BuscarAtractivos([FromQuery] string query)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return BadRequest("La consulta de búsqueda no puede estar vacía.");
+            }
+
+            var atractivos = await _context.Atractivos
+                .Include(a => a.Categoria)
+                .Where(a => a.Nombre.Contains(query) || a.Descripcion.Contains(query) || a.Categoria.Nombre.Contains(query))
+                .Select(a => new
+                {
+                    Id = a.AtractivoId,
+                    Nombre = a.Nombre,
+                    ImagenPrincipal = a.ImagenPrincipal,
+                    Categoria = a.Categoria.Nombre
+                })
+                .ToListAsync();
+
+            if (atractivos.Count == 0)
+            {
+                return NotFound("No se encontraron resultados.");
+            }
+
+            return Ok(atractivos);
+        }
+
+        // GET: api/Atractivos/Sugerencias
+        [HttpGet("Sugerencias")]
+        public async Task<IActionResult> ObtenerSugerencias([FromQuery] string prefix)
+        {
+            var sugerencias = await _context.Atractivos
+                .Where(a => a.Nombre.StartsWith(prefix))
+                .Select(a => a.Nombre)
+                .Take(5) 
+                .ToListAsync();
+
+            return Ok(sugerencias);
+        }
+
+
     }
 }

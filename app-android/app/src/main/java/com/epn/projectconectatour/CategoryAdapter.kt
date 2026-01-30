@@ -1,6 +1,7 @@
 package com.epn.projectconectatour
 
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,7 @@ import com.epn.projectconectatour.network.models.CategoriaHome
 import com.epn.projectconectatour.SiteDetailActivity
 
 class CategoryAdapter(
-    private val categorias: List<CategoriaHome>
+    private var categorias: List<CategoriaHome>
 ) : RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
 
     inner class CategoryViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -31,6 +32,7 @@ class CategoryAdapter(
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val categoria = categorias[position]
+        Log.d("CategoryAdapter", "Cargando categoría: ${categoria.categoria}")
         // Título de la categoría
         holder.categoryTitle.text = categoria.categoria
 
@@ -50,11 +52,18 @@ class CategoryAdapter(
             val intent = Intent(holder.itemView.context, CategoryDetailActivity::class.java)
             intent.putExtra("categoria", categoria.categoria)
             holder.itemView.context.startActivity(intent)
-
         }
-
-
     }
 
     override fun getItemCount(): Int = categorias.size
+
+    // Método para actualizar la lista de categorías y notificar los cambios
+    fun actualizarCategorias(nuevasCategorias: List<CategoriaHome>) {
+        // Solo actualizamos si la lista ha cambiado, evitando notificaciones innecesarias
+        if (categorias != nuevasCategorias) {
+            categorias = nuevasCategorias
+            notifyDataSetChanged()
+        }
+    }
 }
+
